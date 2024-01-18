@@ -10,8 +10,8 @@ import socket
 import time
 from urllib import parse
 
-from lib.cli_output import console
-from lib.sqldb import Sqldb
+# from lib.cli_output import console
+# from lib.sqldb import Sqldb
 
 THREADNUM = 100  # 线程数
 
@@ -344,10 +344,10 @@ PROBE = {'GET / HTTP/1.0\r\n\r\n'}
 
 
 class ScanPort:
-    def __init__(self, ipaddr, dbname):
+    def __init__(self, ipaddr, ports):
         self.ipaddr = ipaddr
         self.port = []
-        self.dbname = dbname
+        self.targetPorts = ports
         self.out = []
         self.num = 0
 
@@ -376,7 +376,7 @@ class ScanPort:
         ip, port = hosts.split(':')
         try:
             # 这里是统计总共开放端口，有些服务器一扫描就全端口开放当大于某个端口数量时则不记录
-            if len(self.port) < 30:
+            if len(self.port) < 66666: # 不要限制
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 result = sock.connect_ex((ip, int(port)))
                 # 建立3次握手成功
@@ -414,8 +414,8 @@ class ScanPort:
     def run(self, ip):
         hosts = []
         global PORTS, THREADNUM
-        random.shuffle(PORTS)
-        for i in PORTS:
+        random.shuffle(self.targetPorts)
+        for i in self.targetPorts:
             hosts.append('{}:{}'.format(ip, i))
         try:
             with concurrent.futures.ThreadPoolExecutor(max_workers=THREADNUM) as executor:
@@ -446,16 +446,16 @@ class ScanPort:
         except Exception as e:
             pass
 
-        if self.num == 0:
-            self.save(self.ipaddr, self.out)
-            for _ in self.out:
-                out.append('{}:{}'.format(_.get('server'), _.get('port')))
-                console('PortScan', self.ipaddr, '{}:{}\n'.format(_.get('server'), _.get('port')))
-            return out
-        else:
-            self.save(self.ipaddr, [{"server": 'Portspoof', "port": '0', "banner": ''}])
-            console('PortScan', self.ipaddr, 'Portspoof:0\n')
-            return ['Portspoof:0']
+        # if self.num == 0:
+        #     self.save(self.ipaddr, self.out)
+        #     for _ in self.out:
+        #         out.append('{}:{}'.format(_.get('server'), _.get('port')))
+        #         console('PortScan', self.ipaddr, '{}:{}\n'.format(_.get('server'), _.get('port')))
+        #     return out
+        # else:
+        #     self.save(self.ipaddr, [{"server": 'Portspoof', "port": '0', "banner": ''}])
+        #     console('PortScan', self.ipaddr, 'Portspoof:0\n')
+        #     return ['Portspoof:0']
 
 
 if __name__ == "__main__":

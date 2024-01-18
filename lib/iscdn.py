@@ -3,8 +3,10 @@ import ipaddress
 import re
 
 import geoip2.database
-
-from lib.url import parse_ip
+try:
+    from lib.url import parse_ip
+except Exception as e:
+    from Vxscan.lib.url import parse_ip
 
 # 通过查询pdns，然后排除国内外常见的cdn段，如果出现极有可能是真实ip
 cdns = [
